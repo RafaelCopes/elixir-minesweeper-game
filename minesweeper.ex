@@ -28,9 +28,9 @@ defmodule Minesweeper do
   # update_pos/4 (update position): recebe um tabuleiro, uma linha, uma coluna e um novo valor. Devolve
   # o tabuleiro modificado com o novo valor na posiçao linha x coluna. Usar update_arr/3 e get_arr/2 na implementação
 
-  def update_pos(tab, l, c, v) do 
-    new_l = tab 
-            |> get_arr(l) 
+  def update_pos(tab, l, c, v) do
+    new_l = tab
+            |> get_arr(l)
             |> update_arr(c, v)
 
     update_arr(tab, l, new_l)
@@ -82,14 +82,14 @@ defmodule Minesweeper do
   # Uma maneira de resolver seria gerar todas as 8 posições adjacentes e depois filtrar as válidas usando is_valid_pos
 
   def valid_moves(tam, l, c) do
-    Enum.map(0..(tam - 1), fn x -> 
+    Enum.map(0..(tam - 1), fn x ->
       Enum.map(0..(tam - 1), fn y ->
         cond do
           (x == l or x == l - 1 or x == l + 1) and (y == c or y == c - 1 or y == c + 1) -> {x, y}
           true -> :not_valid
         end
       end)
-    end) 
+    end)
     |> Enum.flat_map(fn x -> x end)
     |> Enum.filter(fn x -> x != :not_valid and x != {l, c} end)
   end
@@ -99,7 +99,7 @@ defmodule Minesweeper do
 
   def conta_minas_adj(tab, l, c) do
     valid_moves(length(tab) - 1, l, c)
-    |> Enum.reduce(0, fn {x, y}, acc -> 
+    |> Enum.reduce(0, fn {x, y}, acc ->
       cond do
         is_mine(tab, x, y) -> acc + 1
         true -> acc
@@ -122,13 +122,13 @@ defmodule Minesweeper do
 
   def abre_jogada(l, c, minas, tab) do
     cond do
-      get_pos(tab, l, c) != "-" -> tab
       is_mine(minas, l, c) -> tab
+      get_pos(tab, l, c) != "-" -> tab
       conta_minas_adj(minas, l, c) > 0 -> update_pos(tab, l, c, conta_minas_adj(minas, l, c))
-      true -> 
+      true ->
         new_board = update_pos(tab, l, c, 0)
         valid_moves(length(tab), l, c)
-        |> Enum.each(fn {x, y} -> abre_jogada(x, y, minas, new_board) end)
+        |> Enum.reduce(new_board, fn {x, y}, acc -> abre_jogada(x, y, minas, acc) end)
     end
   end
 

@@ -138,20 +138,20 @@ defmodule Minesweeper do
 # - Se a posição {l,c} contém uma mina no mapa de minas, então marcar  com "*" no tabuleiro
 # - Se a posição {l,c} está fechada (contém "-"), escrever o número de minas adjascentes a esssa posição no tabuleiro (usar conta_minas)
 
-  #def abre_posicao(tab,minas,l,c) do
-  # (...)
-  #end
-
-
+  def abre_posicao(tab, minas, l, c) do
+    cond do
+      get_pos(tab, l, c) != "-" -> tab
+      is_mine(minas, l, c) -> update_pos(tab, l, c, "*")
+      true -> update_pos(tab, l, c, conta_minas_adj(minas, l, c))
+    end
+  end
 
 # abre_tabuleiro/2: recebe o mapa de Minas e o tabuleiro do jogo, e abre todo o tabuleiro do jogo, mostrando
 # onde estão as minas e os números nas posições adjecentes às minas.Essa função é usada para mostrar
 # todo o tabuleiro no caso de vitória ou derrota. Para implementar esta função, usar a função abre_posicao/4
 
-
-  #def abre_tabuleiro(minas,tab) do
-  #   (...)
-  #end
+  def abre_tabuleiro(minas, tab) do
+  end
 
 # board_to_string/1: -- Recebe o tabuleiro do jogo e devolve uma string que é a representação visual desse tabuleiro.
 # Essa função é aplicada no tabuleiro antes de fazer o print dele na tela. Usar a sua imaginação para fazer um

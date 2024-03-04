@@ -54,14 +54,16 @@ defmodule Minesweeper do
   #
   # esse tabuleiro possuí minas nas posições 4x4 e 5x5
 
-  #def is_mine(tab,l,c), do: ...
+  def is_mine(tab, l, c), do: get_pos(tab, l, c)
 
   # is_valid_pos/3 recebe o tamanho do tabuleiro (ex, em um tabuleiro 9x9, o tamanho é 9),
   # uma linha e uma coluna, e diz se essa posição é válida no tabuleiro. Por exemplo, em um tabuleiro
   # de tamanho 9, as posições 1x3,0x8 e 8x8 são exemplos de posições válidas. Exemplos de posições
   # inválidas seriam 9x0, 10x10 e -1x8
 
-  #def is_valid_pos(tamanho,l,c), do: ...
+  def is_valid_pos(tamanho, l, c) when l > tamanho - 1 or c > tamanho - 1, do: false
+  def is_valid_pos(_tamanho, l, c) when l < 0 or c < 0, do: false
+  def is_valid_pos(_tamanho, _l, _c), do: true
 
   # valid_moves/3: Dado o tamanho do tabuleiro e uma posição atual (linha e coluna), retorna uma lista
   # com todas as posições adjacentes à posição atual
@@ -79,14 +81,31 @@ defmodule Minesweeper do
   #   ...    ...  ..
   # Uma maneira de resolver seria gerar todas as 8 posições adjacentes e depois filtrar as válidas usando is_valid_pos
 
-  #def valid_moves(tam,l,c), do: ...
+  def valid_moves(tam, l, c) do
+    Enum.map(0..(tam - 1), fn x -> 
+      Enum.map(0..(tam - 1), fn y ->
+        cond do
+          (x == l or x == l - 1 or x == l + 1) and (y == c or y == c - 1 or y == c + 1) -> {x, y}
+          true -> :not_valid
+        end
+      end)
+    end) 
+    |> Enum.flat_map(fn x -> x end)
+    |> Enum.filter(fn x -> x != :not_valid and x != {l, c} end)
+  end
 
   # conta_minas_adj/3: recebe um tabuleiro com o mapeamento das minas e uma  uma posicao  (linha e coluna), e conta quantas minas
   # existem nas posições adjacentes
 
-  # def conta_minas_adj(tab,l,c) do
-  #   (...)
-  # end
+  def conta_minas_adj(tab, l, c) do
+    valid_moves(length(tab) - 1, l, c)
+    |> Enum.reduce(0, fn {x, y}, acc -> 
+      cond do
+        is_mine(tab, x, y) -> acc + 1
+        true -> acc
+      end
+    end)
+  end
 
   # abre_jogada/4: é a função principal do jogo!!
   # recebe uma posição a ser aberta (linha e coluna), o mapa de minas e o tabuleiro do jogo. Devolve como
@@ -101,9 +120,17 @@ defmodule Minesweeper do
   # - Se a posição a ser aberta não possui minas adjacentes, abrimos ela com zero (0) e recursivamente abrimos
   # as outras posições adjacentes a ela
 
-  #def abre_jogada(l,c,minas,tab) do
-  #   (...)
-  #end
+  def abre_jogada(l, c, minas, tab) do
+    cond do
+      get_pos(tab, l, c) != "-" -> tab
+      is_mine(minas, l, c) -> tab
+      conta_minas_adj(minas, l, c) > 0 -> update_pos(tab, l, c, conta_minas_adj(minas, l, c))
+      true -> 
+        new_board = update_pos(tab, l, c, 0)
+        valid_moves(length(tab), l, c)
+        |> Enum.each(fn {x, y} -> abre_jogada(x, y, minas, new_board) end)
+    end
+  end
 
 # abre_posicao/4, que recebe um tabueiro de jogos, o mapa de minas, uma linha e uma coluna
 # Essa função verifica:
